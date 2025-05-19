@@ -53,6 +53,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	inputDir = filepath.Clean(inputDir)
+	outputDir = filepath.Clean(outputDir)
+	includeDir = filepath.Clean(includeDir)
+
 	// get all of the files we need to load into our templater
 	inputfiles, err := getFiles(inputDir)
 	if err != nil {
@@ -76,6 +80,8 @@ func main() {
 	for _, file := range inputfiles {
 		templateName := filepath.Base(file)
 		outputPath := filepath.Join(outputDir, strings.Replace(file, inputDir, "", 1))
+		fmt.Println(inputDir)
+		fmt.Println(outputPath)
 		// make sure the output file's directory exists
 		os.MkdirAll(filepath.Dir(outputPath), 0o777)
 		// open the file
