@@ -80,8 +80,6 @@ func main() {
 	for _, file := range inputfiles {
 		templateName := filepath.Base(file)
 		outputPath := filepath.Join(outputDir, strings.Replace(file, inputDir, "", 1))
-		fmt.Println(inputDir)
-		fmt.Println(outputPath)
 		// make sure the output file's directory exists
 		os.MkdirAll(filepath.Dir(outputPath), 0o777)
 		// open the file
