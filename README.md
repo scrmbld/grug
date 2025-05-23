@@ -24,8 +24,9 @@ Take the following file tree:
         └── index.html
 ```
 
-After running  
-`grug -i src/input -o src/output -include dist`
+After running
+
+`grug -i src/pages -o dist -include src/include`
 
 We get the resulting file tree:
 
