@@ -38,10 +38,12 @@ func main() {
 		inputDir   string
 		outputDir  string
 		includeDir string
+		verbose    bool
 	)
 	flag.StringVar(&inputDir, "i", "", "-i [input dir]")
 	flag.StringVar(&outputDir, "o", "", "-o [output dir]")
 	flag.StringVar(&includeDir, "include", "", "-include [include_dir]")
+	flag.BoolVar(&verbose, "v", false, "-v")
 	flag.Parse()
 
 	if len(inputDir) == 0 {
@@ -60,20 +62,32 @@ func main() {
 	// get all of the files we need to load into our templater
 	inputfiles, err := getFiles(inputDir)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		fmt.Println("quitting...")
+		os.Exit(1)
+	}
+	if verbose {
+		fmt.Println("input files:", inputfiles)
 	}
 	var includefiles []string
 	if len(includeDir) != 0 {
 		includefiles, err = getFiles(includeDir)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			fmt.Println("quitting...")
+			os.Exit(1)
 		}
+	}
+	if verbose {
+		fmt.Println("include files:", includefiles)
 	}
 
 	// load all of the templates
 	ts, err := template.ParseFiles(append(inputfiles, includefiles...)...)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		fmt.Println("quitting...")
+		os.Exit(1)
 	}
 
 	// render the templates and write them to the outputDir
@@ -85,12 +99,18 @@ func main() {
 		// open the file
 		outFile, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			fmt.Println("quitting...")
+			os.Exit(1)
 		}
 		err = ts.ExecuteTemplate(outFile, templateName, nil)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			fmt.Println("quitting...")
+			os.Exit(1)
 		}
-		fmt.Printf("%s written successfully\n", outputPath)
+		if verbose {
+			fmt.Printf("%s written successfully\n", outputPath)
+		}
 	}
 }
