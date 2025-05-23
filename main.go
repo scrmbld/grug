@@ -37,13 +37,18 @@ func anySubdirMatch(base string, matches []string) bool {
 	return false
 }
 
-func getFiles(basePath string, ignoreDirs []string) ([]string, error) {
+func getFiles(basePath string, ignorePaths []string) ([]string, error) {
 	var result []string
 	walkFunc := func(s string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() && !anySubdirMatch(s, ignoreDirs) {
+		// skip directories that are in the ignorePaths -- this means we don't go over files inside them
+		if anySubdirMatch(s, ignorePaths) {
+			return fs.SkipDir
+		}
+		// ignore paths might not be a directory, so we have to check here too
+		if !d.IsDir() && !anySubdirMatch(s, ignorePaths) {
 			result = append(result, s)
 		}
 		return nil
@@ -58,10 +63,11 @@ func getFiles(basePath string, ignoreDirs []string) ([]string, error) {
 func main() {
 	// command line flags
 	var (
-		inputDir   string
-		outputDir  string
-		includeDir string
-		verbose    bool
+		inputDir        string
+		outputDir       string
+		includeDir      string
+		noIncludePassed bool
+		verbose         bool
 	)
 	flag.StringVar(&inputDir, "i", "", "-i [input dir]")
 	flag.StringVar(&outputDir, "o", "", "-o [output dir]")
@@ -77,9 +83,15 @@ func main() {
 		fmt.Println("Must specify -o\nuseage: -o [ouput dir]")
 		os.Exit(1)
 	}
+	if includeDir == "" {
+		noIncludePassed = true
+	}
+
+	inputDir = filepath.Clean(inputDir)
+	outputDir = filepath.Clean(outputDir)
+	includeDir = filepath.Clean(includeDir)
 
 	// get all of the files we need to load into our templater
-	inputDir = filepath.Clean(inputDir)
 	inputfiles, err := getFiles(inputDir, []string{includeDir})
 	if err != nil {
 		fmt.Println(err)
@@ -91,22 +103,24 @@ func main() {
 	}
 
 	var includefiles []string
-	if includeDir == "" {
+	if noIncludePassed {
 		includeDir = filepath.Join(inputDir, "_include")
 	}
-	includeDir = filepath.Clean(includeDir)
 	includefiles, err = getFiles(includeDir, nil)
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println("quitting...")
-		os.Exit(1)
-	}
-	if verbose {
+		// check for include dir does not exist error
+		// we can't just quit on this error because the include dir is optional
+		if err, ok := err.(*fs.PathError); ok && err.Op == "lstat" && err.Path == includeDir {
+			fmt.Printf("WARNING: Include directory %s does not exist\n", includeDir)
+		} else {
+			fmt.Println(err)
+			fmt.Println("quitting...")
+			os.Exit(1)
+		}
+	} else if verbose {
+		// the "include dir does not exist" implies what this will be (namely, empty)
 		fmt.Println("include files:", includefiles)
 	}
-
-	// also run clean on the output path
-	outputDir = filepath.Clean(outputDir)
 
 	// load all of the templates
 	ts, err := template.ParseFiles(append(inputfiles, includefiles...)...)
