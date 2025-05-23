@@ -51,7 +51,7 @@ We get the resulting file tree:
 
 `-i [input dir]` -- input directory \[REQUIRED\]  
 `-o [output dir]` -- output directory \[REQUIRED\]  
-`-include [include dir]` -- include directory. Note that this cannot be inside the input directory at this time, as Grug does not know to ignore it.  
+`-include [include dir]` -- include directory. Default `[input dir]/_include`.  
 `-v` -- verbose. Prints out all loaded input and include files and all of the written output files.  
 
 ### Examples
