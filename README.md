@@ -49,9 +49,9 @@ We get the resulting file tree:
 
 ### Flags
 
-`-i` -- input directory \[REQUIRED\]  
-`-o` -- output directory \[REQUIRED\]  
-`-include` -- include directory. Note that this cannot be inside the input directory at this time, as Grug does not know to ignore it.  
+`-i [<ins>input dir</ins>]` -- input directory \[REQUIRED\]  
+`-o [<ins>output dir</ins>]` -- output directory \[REQUIRED\]  
+`-include [<ins>include dir</ins>]` -- include directory. Note that this cannot be inside the input directory at this time, as Grug does not know to ignore it.  
 `-v` -- verbose. Prints out all loaded input and include files and all of the written output files.  
 
 ### Examples
