@@ -44,14 +44,14 @@ We get the resulting file tree:
 
 ```
 
-`article1.html` and `index.html` have been rendered and written in the output directory, maintaining the directory structure they had in the input directory.
+`article1.html` and `index.html` have been rendered and written in `dist`, maintaining the directory structure they had in the input directory (`src/pages`).
 
 ### Flags
 
-`-i` -- input directory \[REQUIRED\]
-`-o` -- output directory \[REQUIRED\]
-`-include` -- include directory
-`-v` -- verbose. Prints out all loaded input and include files and all of the written output files.
+`-i` -- input directory \[REQUIRED\]  
+`-o` -- output directory \[REQUIRED\]  
+`-include` -- include directory. Note that this cannot be inside the input directory at this time, as Grug does not know to ignore it.  
+`-v` -- verbose. Prints out all loaded input and include files and all of the written output files.  
 
 ### Examples
 
