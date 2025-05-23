@@ -123,12 +123,14 @@ func main() {
 	}
 
 	// load all of the templates
-	ts, err := template.ParseFiles(append(inputfiles, includefiles...)...)
+	ts := template.New("demo").Funcs(template.FuncMap(grugFuncMap))
+	template.Must(ts.ParseFiles(append(inputfiles, includefiles...)...))
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("quitting...")
 		os.Exit(1)
 	}
+	ts = ts.Funcs(grugFuncMap)
 
 	// render the templates and write them to the outputDir
 	for _, file := range inputfiles {
