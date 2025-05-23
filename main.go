@@ -14,13 +14,36 @@ type model struct {
 	Header string
 }
 
-func getFiles(basePath string) ([]string, error) {
+func subdirMatch(base string, match string) bool {
+	basePath := strings.Split(base, "/")
+	matchPath := strings.Split(match, "/")
+	if len(matchPath) > len(basePath) {
+		return false
+	}
+	for i, _ := range matchPath {
+		if basePath[i] != matchPath[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func anySubdirMatch(base string, matches []string) bool {
+	for _, v := range matches {
+		if subdirMatch(base, v) {
+			return true
+		}
+	}
+	return false
+}
+
+func getFiles(basePath string, ignoreDirs []string) ([]string, error) {
 	var result []string
 	walkFunc := func(s string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() {
+		if !d.IsDir() && !anySubdirMatch(s, ignoreDirs) {
 			result = append(result, s)
 		}
 		return nil
@@ -46,21 +69,18 @@ func main() {
 	flag.BoolVar(&verbose, "v", false, "-v")
 	flag.Parse()
 
-	if len(inputDir) == 0 {
+	if inputDir == "" {
 		fmt.Println("Must specify -i\nusage: -i [input dir]")
 		os.Exit(1)
 	}
-	if len(outputDir) == 0 {
+	if outputDir == "" {
 		fmt.Println("Must specify -o\nuseage: -o [ouput dir]")
 		os.Exit(1)
 	}
 
-	inputDir = filepath.Clean(inputDir)
-	outputDir = filepath.Clean(outputDir)
-	includeDir = filepath.Clean(includeDir)
-
 	// get all of the files we need to load into our templater
-	inputfiles, err := getFiles(inputDir)
+	inputDir = filepath.Clean(inputDir)
+	inputfiles, err := getFiles(inputDir, []string{includeDir})
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("quitting...")
@@ -69,18 +89,24 @@ func main() {
 	if verbose {
 		fmt.Println("input files:", inputfiles)
 	}
+
 	var includefiles []string
-	if len(includeDir) != 0 {
-		includefiles, err = getFiles(includeDir)
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("quitting...")
-			os.Exit(1)
-		}
+	if includeDir == "" {
+		includeDir = filepath.Join(inputDir, "_include")
+	}
+	includeDir = filepath.Clean(includeDir)
+	includefiles, err = getFiles(includeDir, nil)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("quitting...")
+		os.Exit(1)
 	}
 	if verbose {
 		fmt.Println("include files:", includefiles)
 	}
+
+	// also run clean on the output path
+	outputDir = filepath.Clean(outputDir)
 
 	// load all of the templates
 	ts, err := template.ParseFiles(append(inputfiles, includefiles...)...)
